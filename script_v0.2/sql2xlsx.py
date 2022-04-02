@@ -37,9 +37,9 @@ PWD={self.psw};
                 print(f'Connection complete successfuly.\nSys_status: connected\n\n')  
                 return connection
             #any error during the connection fill fall over here, giving the reconnect option
-            except:
+            except odbc.Error as error:
                 if cont != 5:
-                    try_again = input('Something went wrong. Try again? y/n\n')
+                    try_again = input(f'Something went wrong.\n{error}\nTry again? y/n\n')
                     if try_again == 'y':
                         print('\n')
                         continue
@@ -66,19 +66,19 @@ class Querry(Connection):
             pd.set_option('display.max_rows', None)
             table = pd.read_sql_query(querry, self.connection)
 
-            directory_exist = os.path.exists(r'./result')
+            directory_exist = os.path.exists(f'./result{globalcounter}')
             if directory_exist == False:
-                os.makedirs('./result')
-            with open(r'./result/data.txt', 'a') as sqlinfo:
+                os.makedirs(f'./result{globalcounter}')
+            with open(f'./result{globalcounter}/data{globalcounter}.txt', 'a') as sqlinfo:
                 config = f'\n\n{table}'
                 tabels_formated = tabels[i].replace(',', '')
                 sqlinfo.write(f'\n\nDatabase: {tabels_formated}, \nResult:\n{config}')
             if final_result == 1:
-                with open(r'./result/data.txt', 'a') as sqlinfo:
+                with open(f'./result{globalcounter}/data{globalcounter}.txt', 'a') as sqlinfo:
                     date = str(datetime.today())
                     sqlinfo.write(f'\n\n\nGenerated at: {date}\nDeveloper: https://github.com/tucokk')
-            table.to_csv(f'./result/{tabels[i]}.csv')
-            table.to_excel(f'./result/{tabels[i]}.xlsx')
+            table.to_csv(f'./result{globalcounter}/{tabels[i]}{globalcounter}.csv')
+            table.to_excel(f'./result{globalcounter}/{tabels[i]}{globalcounter}.xlsx')
 
         print('\nResult files successfuly generated. \nCheck: C:/configfile/script_result.txt')
     
@@ -90,8 +90,14 @@ else:
     generator.generateIniFile()
 
 
-#calling the start of connecting process
-connection = Connection(reader.readIniFile()[4],reader.readIniFile()[0], reader.readIniFile()[1], reader.readIniFile()[2], reader.readIniFile()[3])
-connection_data = connection.connection_database()
-querry = Querry()
-executing_querry = querry.querry()
+database = reader.readIniFile()[1]
+for i in range(len(database)):  
+    #calling the start of connecting process
+        globalcounter = i
+        database_connection = database[i]
+        connection = Connection(reader.readIniFile()[4],reader.readIniFile()[0], database_connection, reader.readIniFile()[2], reader.readIniFile()[3])
+        connection_data = connection.connection_database()
+        querry = Querry()
+        executing_querry = querry.querry()
+
+
