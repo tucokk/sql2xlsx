@@ -57,7 +57,6 @@ class Querry(Connection):
         self.connection = Connection.connection
     def querry(self):
         tabels = reader.readIniFile()[6]
-
         for i in range(len(tabels)):
             querry = reader.readIniFile()[5]
             querry = querry.replace('[tabel]', tabels[i])
