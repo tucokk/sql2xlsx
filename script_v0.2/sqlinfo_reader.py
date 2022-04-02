@@ -8,5 +8,6 @@ def readIniFile():
     UID = config['SQL_INFO']['uid']
     PSW = config['SQL_INFO']['pws']
     DRIVER = config['SQL_INFO']['driver']
-
-    return (SERVER_NAME, DATABASE_NAME, UID, PSW, DRIVER)
+    QUERRY = config['SCRIPT_INFO']['querry']
+    TABEL = [str(x) for x in config.get('SCRIPT_INFO', 'tabel').split(',')]
+    return (SERVER_NAME, DATABASE_NAME, UID, PSW, DRIVER, QUERRY, TABEL)

@@ -1,7 +1,7 @@
 import pypyodbc as odbc
 import time
 import sqlinfo_generator as generator
-import script.sqlinfo_reader as reader
+import sqlinfo_reader as reader
 import os
 import pandas as pd
 import openpyxl
@@ -56,33 +56,32 @@ class Querry(Connection):
     def __init__(self):
         self.connection = Connection.connection
     def querry(self):
-        tabels = ['aluno']
-        print('Generating file...')
+        tabels = reader.readIniFile()[6]
+
         for i in range(len(tabels)):
-            query = (f'''
-        SELECT
-            top 5000 *
-        FROM
-            {tabels[i]} 
-        
-            ''')
-            
+            querry = reader.readIniFile()[5]
+            querry = querry.replace('[tabel]', tabels[i])
+            final_result = 0
+            if tabels[-1] == tabels[i]:
+                final_result = 1
             pd.set_option('display.max_rows', None)
-            table = pd.read_sql_query(query, self.connection)
+            table = pd.read_sql_query(querry, self.connection)
+
             directory_exist = os.path.exists(r'./result')
             if directory_exist == False:
                 os.makedirs('./result')
             with open(r'./result/data.txt', 'a') as sqlinfo:
                 config = f'\n\n{table}'
                 tabels_formated = tabels[i].replace(',', '')
-                sqlinfo.write(f'\n\n\nDatabase: {tabels_formated}, \nResult:\n{config}')
-            with open(r'./result/data.txt', 'a') as sqlinfo:
-                date = str(datetime.today())
-                sqlinfo.write(f'\n\n\nGenerated at: {date}\nDeveloper: https://github.com/tucokk')
-            table.to_csv(r'./result/data.csv')
-            table.to_excel(r'./result/data.xlsx')
+                sqlinfo.write(f'\n\nDatabase: {tabels_formated}, \nResult:\n{config}')
+            if final_result == 1:
+                with open(r'./result/data.txt', 'a') as sqlinfo:
+                    date = str(datetime.today())
+                    sqlinfo.write(f'\n\n\nGenerated at: {date}\nDeveloper: https://github.com/tucokk')
+            table.to_csv(f'./result/{tabels[i]}.csv')
+            table.to_excel(f'./result/{tabels[i]}.xlsx')
 
-        print('\nSelect complete successfuly. Check: \nC:/configfile/script_result.txt')
+        print('\nResult files successfuly generated. \nCheck: C:/configfile/script_result.txt')
     
 #reading .ini file or creating it
 file_exist = os.path.isfile(r'./config/sql_config.ini')
@@ -97,7 +96,3 @@ connection = Connection(reader.readIniFile()[4],reader.readIniFile()[0], reader.
 connection_data = connection.connection_database()
 querry = Querry()
 executing_querry = querry.querry()
-
-
-
-
