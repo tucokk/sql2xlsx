@@ -30,5 +30,3 @@ def generateIniFile():
         config.write(sqlinfo)
         print('sql_config.ini successfuly generated.\nRun the program again.')
         exit()
-
-    
