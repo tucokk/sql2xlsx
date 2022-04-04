@@ -6,6 +6,10 @@ import os
 import pandas as pd
 import openpyxl
 from datetime import datetime
+import warnings
+
+warnings.filterwarnings("ignore")
+
 # setting the config.ini data as the connection fields (server, database, login, password)
 class Connection:
     def __init__(self, DRIVER, SERVER_NAME, DATABASE_NAME, UID, PSW):
@@ -57,30 +61,39 @@ class Querry(Connection):
         self.connection = Connection.connection
     def querry(self):
         tabels = reader.readIniFile()[6]
+        successcounter = 0
         for i in range(len(tabels)):
-            querry = reader.readIniFile()[5]
-            querry = querry.replace('[tabel]', tabels[i])
-            final_result = 0
-            if tabels[-1] == tabels[i]:
-                final_result = 1
-            pd.set_option('display.max_rows', None)
-            table = pd.read_sql_query(querry, self.connection)
+            try:
+                querry = reader.readIniFile()[5]
+                querry = querry.replace('[tabel]', tabels[i])
+                final_result = 0
+                if tabels[-1] == tabels[i]:
+                    final_result = 1
+                pd.set_option('display.max_rows', None)
+                table = pd.read_sql_query(querry, self.connection)
 
-            directory_exist = os.path.exists(f'./result{globalcounter}')
-            if directory_exist == False:
-                os.makedirs(f'./result{globalcounter}')
-            with open(f'./result{globalcounter}/data{globalcounter}.txt', 'a') as sqlinfo:
-                config = f'\n\n{table}'
-                tabels_formated = tabels[i].replace(',', '')
-                sqlinfo.write(f'\n\nDatabase: {tabels_formated}, \nResult:\n{config}')
-            if final_result == 1:
+                directory_exist = os.path.exists(f'./result{globalcounter}')
+                if directory_exist == False:
+                    os.makedirs(f'./result{globalcounter}')
                 with open(f'./result{globalcounter}/data{globalcounter}.txt', 'a') as sqlinfo:
-                    date = str(datetime.today())
-                    sqlinfo.write(f'\n\n\nGenerated at: {date}\nDeveloper: https://github.com/tucokk')
-            table.to_csv(f'./result{globalcounter}/{tabels[i]}{globalcounter}.csv')
-            table.to_excel(f'./result{globalcounter}/{tabels[i]}{globalcounter}.xlsx')
-
-        print('\nResult files successfuly generated. \nCheck: C:/configfile/script_result.txt')
+                    config = f'\n\n{table}'
+                    characters = ', '
+                    for x in range(len(characters)):
+                        tabels_formated = tabels[i].replace(characters[x], '')
+                    sqlinfo.write(f'\n\nDatabase: {tabels_formated} \nResult:\n{config}')
+                if final_result == 1:
+                    with open(f'./result{globalcounter}/data{globalcounter}.txt', 'a') as sqlinfo:
+                        date = str(datetime.today())
+                        sqlinfo.write(f'\n\n\nGenerated at: {date}\nDeveloper: https://github.com/tucokk')
+                table.to_csv(f'./result{globalcounter}/{tabels[i]}{globalcounter}.csv')
+                table.to_excel(f'./result{globalcounter}/{tabels[i]}{globalcounter}.xlsx')
+                successcounter += 1
+                print(f'Successful [{successcounter}][{tabels[i]}]')
+            except:
+                tabel = tabels[i].replace(' ', '')
+                print(f'The object [{tabel}] does not exist. Skiping.')
+                continue
+        print('\nResult files successfuly generated. \nCheck: ./result')
     
 #reading .ini file or creating it
 file_exist = os.path.isfile(r'./config/sql_config.ini')
